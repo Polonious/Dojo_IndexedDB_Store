@@ -1,0 +1,4 @@
+it implements dojo object store api.
+the usage is similar to JsonRest.
+I tested this on Chrome, it may not work on other browsers
+welcome to improve/clone it.
