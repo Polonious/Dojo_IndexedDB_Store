@@ -19,14 +19,14 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
         autoIncrementId:true,
         
         // indexNames: string array
-        indexNames:[],
+        indexNames:null,
         
         // idProperty: String
         //		Indicates the property to use as the identity property. The values of this
         //		property should be unique.
         idProperty: "id",
         
-        _database:new Deferred(),
+        _database:null,
         
         constructor: function(/*IndexedDb*/ options){
             // summary:
@@ -37,6 +37,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
         	if (!indexedDB){
         		throw new Error("IndexedDB not available on this browser");
         	}
+        	this.indexNames=[];
+         	this._database=new Deferred();
             lang.mixin(this, options);
 		
         	//create the store if it hasn't existed.
@@ -51,7 +53,8 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
         		console.log(this.storeName+" store found?"+found);
         		console.log("current version - "+db1.version);
         		var nextVersion=(db1.version&&(parseInt(db1.version)+1))||2;//2 is the first version.
-        		if(!found){        			
+        		if(!found){   
+        			db1.close();
         			var request2=indexedDB.open(this.databaseName,nextVersion);
         			request2.onerror=lang.hitch(this,function(evt){this._database.reject(evt.target.errorCode);});
         			request2.onupgradeneeded=lang.hitch(this,function(evt){this.upgradeSchema(evt.target.result);});
@@ -66,13 +69,16 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
         					if(db2.setVersion){
 	        					db2.setVersion(nextVersion).onsuccess=lang.hitch(this,function(evt){
 	        						this.upgradeSchema(evt.target.result.db);
+	        						db2.close();
 	        						indexedDB.open(this.databaseName).onsuccess=lang.hitch(this,function(evt){this._database.resolve(evt.target.result);});	        						
 	        					});
         					}else{
+        						db2.close();
         						var returnError=new Error("Failed to create object store.");
         						this._database.reject(returnError);
         					}
         				}else{
+        					db2.close();
         					indexedDB.open(this.databaseName).onsuccess=lang.hitch(this,function(evt){this._database.resolve(evt.target.result);});
         				}
         			});        			
