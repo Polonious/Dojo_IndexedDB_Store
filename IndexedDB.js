@@ -50,7 +50,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
         		}
         		console.log(this.storeName+" store found?"+found);
         		console.log("current version - "+db1.version);
-        		var nextVersion=(db1.version&&(db1.version+1))||2;//2 is the first version.
+        		var nextVersion=(db1.version&&(parseInt(db1.version)+1))||2;//2 is the first version.
         		if(!found){        			
         			var request2=indexedDB.open(this.databaseName,nextVersion);
         			request2.onerror=lang.hitch(this,function(evt){this._database.reject(evt.target.errorCode);});
