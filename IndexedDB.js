@@ -30,7 +30,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
         
         constructor: function(/*IndexedDb*/ options){
             // summary:
-            //		IndexedDB based object store. it works only on Chrome, may work on others but not tested.
+            //		IndexedDB based object store. it works on Chrome/Firefox, may work on others but not tested.
         	//e.g. mytable=new IndexedDb({databaseName:"mydatabase",storeName:"mytable",indexNames:["field1"]});
         	//	   mytable.put({id:2,field1:"I'm field1"});mytable.put({field1:"I'm field1 too"});
         	//	   mytable.get(2);
