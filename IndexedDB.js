@@ -30,7 +30,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
         
         constructor: function(/*IndexedDb*/ options){
             // summary:
-            //		IndexedDB based object store. it works on Chrome/Firefox, may work on others but not tested.
+            //		IndexedDB based object store. it works only on Chrome, may work on others but not tested.
         	//e.g. mytable=new IndexedDb({databaseName:"mydatabase",storeName:"mytable",indexNames:["field1"]});
         	//	   mytable.put({id:2,field1:"I'm field1"});mytable.put({field1:"I'm field1 too"});
         	//	   mytable.get(2);
@@ -218,10 +218,11 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
         query: function(query, options){
     		// summary:
     		//		Queries the store for objects. only one sort/index supported.
-        	//		use query to create the range of the cursor to be done.
+        	//		query should include only one key/value pair. the key should be
+        	//		one of the supported indexes.
     		// query: Object
     		//		The query to use for retrieving objects from the store.
-    		//	options: dojo.store.api.Store.QueryOptions?
+    		//	options: dojo.store.api.Store.QueryOptions
     		//		The optional arguments to apply to the resultset.
     		//	returns: dojo.store.api.Store.QueryResults
     		//		The results of the query, extended with iterative methods.
@@ -232,6 +233,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
     		var def=new Deferred();
     		def.total=new Deferred();
     		
+    		var range=null;
     		var indexName=null;
     		var indexDirection=IDBCursor.NEXT;
     		if(options && options.sort){
@@ -240,12 +242,21 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
     			if(sort.descending){
     				indexDirection=IDBCursor.PREV;
     			}
+    			if(query&&query[indexName]){
+    				range=IDBKeyRange.only(query[indexName]);
+    			}
+    		}else if(query&&this.indexNames){
+    			baseArray.forEach(this.indexNames,function(item,index){
+    				if(query[item]){
+    					indexName=item;
+    					range=IDBKeyRange.only(query[item]);
+    				}
+    			});   			
     		}
     		
     		var start=options.start||0;    		
     		var count=options.count||20;    		
-    		var objectArray=[];
-    		
+    		var objectArray=[];    		
     		
 			Deferred.when(this._database,lang.hitch(this,function(db){
 				var cursorIndex=0;
@@ -253,9 +264,9 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
     			var store=transaction.objectStore(this.storeName);
     			var request=null;
     			if(indexName){
-    				request=store.index(indexName).openCursor(null,indexDirection);
+    				request=store.index(indexName).openCursor(range,indexDirection);
     			}else{
-    				request=store.openCursor(null,indexDirection);
+    				request=store.openCursor(range,indexDirection);
     			}
     			request.onerror=function(evt){
     				objectArray.total=0;
