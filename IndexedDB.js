@@ -263,7 +263,7 @@ define(["dojo/_base/declare", "dojo/_base/lang", "dojo/_base/Deferred",
     				def.resolve(objectArray);
     			};
     			request.onsuccess=function(evt){
-    				var cursor=event.target.result;
+    				var cursor=evt.target.result;
     				if(!cursor){
     					def.total.resolve(cursorIndex);
     					def.resolve(objectArray);        					
